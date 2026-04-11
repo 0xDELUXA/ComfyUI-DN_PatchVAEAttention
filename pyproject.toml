@@ -1,0 +1,18 @@
+[project]
+name = "dn_patchvaeattention"
+description = "A ComfyUI custom node that patches the attention mechanism inside a VAE's encoder and decoder to use a specific implementation, regardless of what ComfyUI auto-selected at startup."
+version = "1.0.0"
+license = {file = "LICENSE"} 
+
+[project.urls]
+Repository = "https://github.com/0xDELUXA/ComfyUI-DN_PatchVAEAttention"
+#  Used by Comfy Registry https://registry.comfy.org
+Documentation = "https://github.com/0xDELUXA/ComfyUI-DN_PatchVAEAttention/wiki"
+"Bug Tracker" = "https://github.com/0xDELUXA/ComfyUI-DN_PatchVAEAttention/issues"
+
+[tool.comfy]
+PublisherId = "deluxa"
+DisplayName = "ComfyUI-DN_PatchVAEAttention"
+Icon = "https://avatars.githubusercontent.com/u/211159064"
+includes = [] 
+# "requires-comfyui" = ">=1.0.0"  # ComfyUI version compatibility
