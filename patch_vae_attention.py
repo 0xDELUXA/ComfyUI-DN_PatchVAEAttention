@@ -24,10 +24,37 @@ def _slice_attention(q, k, v):
     return vae_model.normal_attention(q, k, v)
 
 
+def flash_attention(q, k, v):
+    from flash_attn import flash_attn_func
+    orig_shape = q.shape
+    B = orig_shape[0]
+    C = orig_shape[1]
+    N = orig_shape[2] if len(orig_shape) == 3 else orig_shape[2] * orig_shape[3]
+    oom_fallback = False
+    q_reshaped = q.view(B, C, N).transpose(1, 2).unsqueeze(2).contiguous()
+    k_reshaped = k.view(B, C, N).transpose(1, 2).unsqueeze(2).contiguous()
+    v_reshaped = v.view(B, C, N).transpose(1, 2).unsqueeze(2).contiguous()
+
+    try:
+        out = flash_attn_func(q_reshaped, k_reshaped, v_reshaped, dropout_p=0.0, causal=False)
+        out = out.squeeze(2).transpose(1, 2).reshape(orig_shape)
+    except Exception as e:
+        mm.raise_non_oom(e)
+        logging.warning("OOMed: switched to slice attention")
+        oom_fallback = True
+    if oom_fallback:
+        q_flat = q.view(B, C, N).transpose(1, 2)
+        k_flat = k.view(B, C, N)
+        v_flat = v.view(B, C, N)
+        out = _slice_attention(q_flat, k_flat, v_flat).reshape(orig_shape)
+    return out
+
+
 _BACKENDS = {
     "pytorch":  _pytorch_attention,
     "xformers": _xformers_attention,
     "split":    _slice_attention,
+    "flash":    flash_attention,
 }
 
 
